@@ -1,0 +1,97 @@
+#include <iostream>
+#include <vector>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+const int WIDTH = 10;
+const int HEIGHT = 10;
+const int MINES = 10;
+
+vector<vector<char>> board(HEIGHT, vector<char>(WIDTH, ' '));
+vector<vector<bool>> revealed(HEIGHT, vector<bool>(WIDTH, false));
+
+void printBoard() {
+    cout << "  ";
+    for (int i = 0; i < WIDTH; ++i) {
+        cout << i << " ";
+    }
+    cout << endl;
+
+    for (int y = 0; y < HEIGHT; ++y) {
+        cout << y << " ";
+        for (int x = 0; x < WIDTH; ++x) {
+            if (revealed[y][x]) {
+                cout << board[y][x] << " ";
+            }
+            else {
+                cout << "* ";
+            }
+        }
+        cout << endl;
+    }
+}
+
+void placeMines() {
+    srand(time(0));
+    int placed = 0;
+    while (placed < MINES) {
+        int x = rand() % WIDTH;
+        int y = rand() % HEIGHT;
+        if (board[y][x] == ' ') {
+            board[y][x] = 'M';
+            placed++;
+        }
+    }
+}
+
+int countMines(int x, int y) {
+    int count = 0;
+    for (int dy = -1; dy <= 1; ++dy) {
+        for (int dx = -1; dx <= 1; ++dx) {
+            if (dx == 0 && dy == 0) continue;
+            int nx = x + dx, ny = y + dy;
+            if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT) {
+                if (board[ny][nx] == 'M') {
+                    count++;
+                }
+            }
+        }
+    }
+    return count;
+}
+
+void reveal(int x, int y) {
+    if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT || revealed[y][x]) {
+        cout << "error" << endl; // 非法坐标回复“error”
+        return;
+    }
+    revealed[y][x] = true;
+    if (board[y][x] == 'M') {
+        cout << "你踩到地雷了！游戏结束。" << endl;
+        exit(0);
+    }
+    int mines = countMines(x, y);
+    board[y][x] = mines + '0';
+    if (mines == 0) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dx = -1; dx <= 1; ++dx) {
+                if (dx == 0 && dy == 0) continue;
+                reveal(x + dx, y + dy);
+            }
+        }
+    }
+}
+
+int main() {
+    placeMines();
+    int x, y;
+    while (true) {
+        printBoard();
+        cout << "请输入要揭示的坐标（格式：x y）: ";
+        cin >> x >> y;
+        reveal(x, y);
+    }
+    return 0;
+}
